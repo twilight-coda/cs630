@@ -76,9 +76,11 @@ _Router functionality should be parallelized across multiple processing paths wi
 ## The Design
 
 **Traditional router architecture**
+
 ![Traditional Router Architecture](Traditional-router-architecture.png)
 
 **Cluster Router Architecture**
+
 ![Cluster Router Architecture](Cluster-router-architecture.png)
 
 - A router with $N$ ports
@@ -129,6 +131,7 @@ We use a load-balancing algorithm - Valiant Load Balancing (VLB) and adapt it to
 
 ###### Valiant Load Balancing
 $N$ nodes are arranged in full mesh as shown below:
+
 ![VLB mesh](VLB-mesh.png)
 
 Forwarding from source node $S$ to destination node $D$ is performed in two phases:
@@ -156,6 +159,7 @@ Since each node is full-duplex, it has to handle $2R$ traffic rate + $R$ because
 2. If the number of servers cannot be accommodated by the fanout, then use a k-ary n-fly topology, where k is the per-server fanout and $n = log_k N$.
 
 Example of a 2-ary 3-fly network topology:
+
 ![Generalized butterfly](generalized-butterfly.png)
 
 
