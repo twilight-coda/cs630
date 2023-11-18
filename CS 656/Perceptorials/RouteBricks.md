@@ -177,6 +177,77 @@ Example of a 2-ary 3-fly network topology:
 
 ## Parallelizing Within Servers
 
+#### Server Architecture
+
+![Server architecture](server-architecture.png)
+
+- Intel Nehalem server
+- 2 sockets, four 2.8GHz cores per socket
+- Shared 8MB L3 cache per socket
+- One integrated memory controller per socket $\Rightarrow$ NUMA architecture
+- Sockets are connected to I/O hub and I/O hub to PCIe buses
+- Two NICs each holding two 10Gbps ports
+#### Software
+- Linux 2.6.19 with Click in polling mode - i.e., the CPUs poll for incoming packets rather than being interrupted
+- 10G Ethernet driver
+- Proprietary performance tool similar to Intel VTune
+#### Traffic generation
+- 2 NICs $\times$ 2 ports $\times$ 10Gbps = 40Gbps theoretical rate
+- But use of x8 PCIe 1.1 slot limits the maximum payload data rate to 12.8Gbps per NIC = 24.6Gbps
+- Target hardware expected to offer 4-8 NIC slots
+#### Exploiting Parallelism
+
+> **Multi-core is not enough**
+> - The same tests were tried on Intel Xeon servers
+> 	- Same two socket and total 8-core CPU
+> 	- Shared front-side bus instead of a dedicated bus per socket
+> - It's performance fell short of Nehalem processors for small and medium sized packets
+> - The bottleneck was found to be the shared bus connecting the CPUs to the memory subsystem
+> - Packet processing workloads place a heavy load on memory and I/O, and the shared bus didn't provide enough bandwidth
+> - Nehalem's architecture provides 2-3x performance improvement over the tested Xeon server
+
+2 rules to be followed to achieve desired performance -
+_Rule 1_: Each network queue can only be accessed by a single core
+- A core needs to perform a lock on the input queue before reading data from the queue
+- This is forbiddingly expensive
+
+_Rule 2_: Each packet will be handled by a single core
+- The other approach would be pipelining, which requires synchronization between cores and slows down the performance by as much as 29%, with cache misses 64%
+
+Two common cases for rule violation -
+1. Number of cores > number of NICs _and_ a single core can't cope with the processing demands $\Rightarrow$ In this case, one core will poll in a packet, split it between multiple cores
+2. Overlapping $\Rightarrow$ Two packets that have different input ports but the same output port
+
+![Multi queue NIC](multi-queue-nic.png)
+
+The problem is solved using Multi-queue NICs, NICs with multiple 1Gbps interfaces.
+
+###### Poll-driven batching + NIC-driven batching
+To reduce per-packet book-keeping overhead, the operation can be batched to have fewer number of larger transactions, complemented by poll-driven batching that receives packets in batches.
+$k_p$ = number of packets per poll operation
+$k_n$ = number of packets batched by NIC (modified NIC driver)
+
+$k_p$ = 32 and $k_n$ = 16 yields the optimal results (shown below).
+
+![Batching Performance](batching-performance.png)
+
+###### NUMA-aware data placement
+For router specific workloads, placement of data was not found to make any difference in packet processing. So, no special treatment is being done to keep packets processed by a core closer to that core's socket.
+
+#### Summary
+- Optimal results when CPU parallelism is accompanied by memory access parallelism and multi-queue NICs
+- Test scenario -
+	- 64 KB packets
+	- Pre-determined input and output ports $\Rightarrow$ no header processing
+
+![Test scenario results](intra-parallelism-results.png)
+
+**Result**: 670% improvement from Nehalem single-queue, no-batching method, and 1100% increase from Xeon architecture
+
+
+
+
+
 
 ## Questions:
 1. With the innovations and programmability of SDNs, what is the relevance of RouteBricks?
