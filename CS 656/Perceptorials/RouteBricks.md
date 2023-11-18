@@ -291,8 +291,85 @@ For each component:
 2. Measure the per-packet load on the component under increasing input packet rates for different workloads.
 3. Compare actual loads to upper bounds to find the bottlenecks.
 
+Upper bounds:
+
 ![Upper bounds](sytem-components-upper-bounds.png)
 
+Observations:
+
+![CPU load](cpu-load-analysis.png)
+
+![Other components - load](other-components-load.png)
+
+**Bottleneck** -
+- For all applications CPU cycles/packet approaches the upper bound
+- This indicates that CPU is the bottleneck in all three applications
+
+Why?
+- Cycles/packet remains constant under increasing load
+- Increasing cycles/packet would indicate that the memory subsystem is struggling (higher access times)
+At the time of the study, it was predicted that the number of cores will scale according to Moore's law, so the situation isn't undesirable.
+
+**Small v/s large packets** -
+- Load per byte was observed to be higher for smaller packets.
+- The reason mentioned for this was smaller packets will have a higher book-keeping overhead
+
+**Non-bottlenecks** -
+- Per-packet load on all other components is lower than the upper bound
+- Indicates that they are not performance limiters
+
+**Expected Scaling** -
+- For all three applications, per-packet load on system remains constant
+- Extrapolating from observations, performance rates of 38.8, 19.9, and 5.8Gbps for minimal forwarding, IP routing, and IPsec, respectively, given 64B packets
+- CPU will remain the bottleneck
+- For Abilene trace packets, if the two NIC limitation is removed, it is possible to reach 80% of upper bound (70Gbps)
+
+#### Summary
+- Current servers achieve good performance given the realistic Abilene workloads
+- Fare worse given the worst-case 64B-packet workloads
+- CPU is the bottleneck, but next-gen expected to provide 4x improvements
+
+## The RB4 Parallel Router
+
+- 4 Nehalem servers
+- Interconnected through full-mesh topology
+- Direct-VLB routing
+- Each server is assigned a 10Gbps external link
+
+#### Implementation
+
+Using the two design principles.
+Focus on two details:
+1. Reducing CPU load (minimizing packet processing)
+	- Avoid having each CPU in the interconnect path processing the packet header
+	- Find the destination port in the source port server and put its MAC address as the destination address.
+	- NICs have a feature to take an incoming packet and put it into the output queue based on its MAC address
+2. Avoiding packet reordering
+	- Use the TCP or UDP flow concept
+	- Same-flow packets are assigned to the same server
+	- Same-flow packets during a 100 msec burst is assigned to one set of intermediate nodes
+
+#### Performance
+
+**Forwarding performance**
+- RB4's routing performance is 12Gbps, i.e., each server supports 3Gbps external line rate.
+- Expected performance - between 12.7 to 19.4 Gbps
+- Slowdown reason - reordering avoidance overhead
+
+**Reordering**
+- 0.15% reordering when using reordering-avoidance
+- 5.5% reordering without reordering-avoidance
+
+**Latency**
+- For 2-3 hops in RB4 - 47.6 - 66.4 $\micro S$
+- Cisco 6500 Series router 26.3 $\micro S$
+
+## Conclusion
+- Analysis of scaling software routers to replace special-purpose hardware
+- Proposed a parallelized router architecture
+- Decent baseline performance to build on using future improvements to commodity hardware
+- Close to achieving line rate of 10Gbps
+- Emerging servers promise to close the gap to 10Gbps
 
 
 ## Questions:
