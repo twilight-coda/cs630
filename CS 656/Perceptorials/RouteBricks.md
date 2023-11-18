@@ -244,8 +244,54 @@ For router specific workloads, placement of data was not found to make any diffe
 
 **Result**: 670% improvement from Nehalem single-queue, no-batching method, and 1100% increase from Xeon architecture
 
+## Evaluation
+1. Describe workloads
+2. Black-box testing
+3. Observation analysis
 
+#### Workloads
+We consider three applications:
+1. _Minimal forwarding_: fixed input and output ports
+	- Stresses memory and I/O
+	- Minimal subset of any packet-processing action
+	- Offers upper bound on achievable performance
+2. _IP routing_: Full IP routing checksum calculation, header updates, longest-prefix-match lookup
+	- References large data structures
+3. _IPsec packet encryption_: Every packet is encrypted using AES-128 encryption
+	- CPU-intensive
 
+**Metrics** - maximum attainable loss-free forwarding rate in terms of bits per second (bps) or packets per second (pps)
+
+#### Black-box System Performance
+###### Minimal Forwarding
+Lowest rate for 64B packets $\Rightarrow$ 9.7Gbps
+Highest rate for Abilene trace packets $\Rightarrow$ 24.6Gbps
+###### IP Routing
+64B packets $\Rightarrow$ 6.35Gbps
+Abilene packets $\Rightarrow$ 24.6Gbps
+###### IPsec Encryption
+64B packets $\Rightarrow$ 1.4Gbps
+Abilene packets $\Rightarrow$ 4.45Gbps
+
+![Black box performance](black-box-perf.png)
+
+#### System Performance Analysis
+
+The approach would be to understand the bottlenecks
+
+Considering the following components:
+1. CPUs
+2. memory buses
+3. Socket-I/O links
+4. Inter-socket link
+5. PCIe buses connecting the NICs to the I/O hub
+
+For each component:
+1. Estimate an upper bound on the per-packet load that each component can accommodate as a function of the input packet rate.
+2. Measure the per-packet load on the component under increasing input packet rates for different workloads.
+3. Compare actual loads to upper bounds to find the bottlenecks.
+
+![Upper bounds](sytem-components-upper-bounds.png)
 
 
 
