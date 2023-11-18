@@ -162,8 +162,20 @@ Example of a 2-ary 3-fly network topology:
 
 ![Generalized butterfly](generalized-butterfly.png)
 
+#### Cost Analysis
+3 Configurations:
+1. One server $\Rightarrow$ One router port and 5 NICs (available)
+2. One server $\Rightarrow$ One router port and 20 NICs (available as custom motherboard configurations)
+3. One server $\Rightarrow$ Two router port and 20 NICs (upcoming servers)
 
+![Cost Analysis](cost-analysis.png)
 
+- For config 1, 32 servers can be connected in full-mesh
+- For config 2, it is 128 servers
+- For config 3, 2048 servers
+- Conclusion: this cluster can scale to hundreds or thousands of ports
+
+## Parallelizing Within Servers
 
 
 ## Questions:
