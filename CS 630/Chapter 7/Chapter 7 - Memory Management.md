@@ -44,7 +44,7 @@ Allocating memory to processes is the primary operation performed by memory mana
 Some basic approaches that can be taken (fixed and dynamic partitions were used in now-obsolete OSs and simple paging and segmentation are discussed as a basis for partitioning without VM considerations):
 #### Fixed Partitioning
 The memory reserved for programs (space other than the OS), is divided into regions with fixed boundaries.
-![[Pasted image 20231107123000.png]]
+![Fixed partitioning](Pasted_image_20231107123000.png)
 ###### Equal-sized partitions
 - Here, the memory is divided into partitions of equal sizes.
 - Any process that is smaller than or equal to the partition size can be allocated a single partition.
@@ -67,13 +67,15 @@ The memory reserved for programs (space other than the OS), is divided into regi
 **IBM Mainframe - OS/MFT (Multiprogramming with Fixed Number of Tasks) uses fixed partitioning**
 #### Dynamic Partitioning
 In this technique, the memory is not partitioned beforehand. When a process is allocated, it is allocated exactly the size that it needs. **IBM mainframe OS/MVT (Multiprogramming with Variable Number of Tasks) uses this approach**.
-![[Pasted image 20231108080428.png]]
+![Dynamic Partitioning](Pasted_image_20231108080428.png)
 - As shown in the fig. above, dynamic partition has a consequence of causing **external fragmentation** over time.
 - External fragmentation is when there are holes in the memory small enough that no process can be allocated to it.
 - **Compaction** is the technique used for removing external fragmentation by relocating partitions together so the remaining available memory becomes a contiguous block (which can then potentially be used by a process).
-- **Placement Algorithm** Because of the external fragmentation, it is essential to choose a placement algorithm that minimizes it.
-	![[Pasted image 20231108083548.png]]
-	There are three ways:
+- **Placement Algorithm**
+
+![Placement algorithms](Pasted_image_20231108083548.png)
+- Because of the external fragmentation, it is essential to choose a placement algorithm that minimizes it.
+- There are three ways:
 	- **First-fit**: Search for available memory from the beginning and pick the first block that is larger than the process size.
 	- **Next-fit**: Start scanning from the last allocation address and pick the first block larger than the process.
 	- **Best-fit**: Scan from beginning to the end, and pick the block closest (but larger) in size to the process.
@@ -106,7 +108,9 @@ void get_hole(int i) {
 	2. If a block of appropriate size already exists, use it.
 	3. If two buddies (blocks split from one original block) are freed, merge them.
 	4. Do not merge two available blocks that are not buddies (even if they are adjacent).
-![[Pasted image 20231108102657.png]]
+
+![Buddy System](Pasted_image_20231108102657.png)
+
 - A modified form of buddy system is used in UNIX kernel memory allocation
 #### About Relocation in Fixed and Dynamic partitioning and Buddy System
 - In the case where we have unequal-sized partitions with multiple queues, a process will always be allocated to the same block. This implies that the first time a process is loaded, the relative memory references are translated into absolute main memory addresses (because it will always be loaded at this address because of its size).
@@ -120,7 +124,9 @@ void get_hole(int i) {
 	- The "bounds" register contains the end address of the process.
 	- The program executed contains instruction address, branch and call instructions and program data, all of which exist within the program memory space.
 	- For all address references above, the physical address is calculated by adding the base register contents to the relative address. A check is also performed to see if the physical address is within the "bound" to prevent the process from accessing unauthorized part of the memory. If that is the case, a trap is generated.
-![[Pasted image 20231110152649.png]]
+
+![Relocation](Pasted_image_20231110152649.png)
+
 ## Paging
 NOTE: This section discusses simple paging, which doesn't include Virtual Memory considerations.
 - Fixed-size partitions &rarr; internal fragmentation
@@ -135,4 +141,6 @@ NOTE: This section discusses simple paging, which doesn't include Virtual Memory
 - The logical-to-physical address translation is done by the hardware. It means that the processor should have a reference to the page table. It takes the logical address (page number, offset) as input, and uses the page table to produce the physical address (frame number, offset).
 - The page table contains one entry for each page of a process, which means, the index can be used as the page number. The value stored in the page table indicates the frame number where the page is currently stored.
 - The OS also maintains a list of free frames in main memory.
-![[Pasted image 20231112000444.png]]
+
+![Paging](Pasted_image_20231112000444.png)
+
